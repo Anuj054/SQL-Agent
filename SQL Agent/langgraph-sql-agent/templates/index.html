@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎵 Chinook Music AI Assistant</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0a0014 0%,
+          #1a0033 25%,
+          #2d1b69 50%,
+          #1e3a8a 75%,
+          #0f172a 100%
+        );
+        min-height: 100vh;
+        color: #ffffff;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Animated musical notes background */
+      .music-notes {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .note {
+        position: absolute;
+        color: rgba(147, 51, 234, 0.3);
+        font-size: 20px;
+        animation: float-music 8s ease-in-out infinite;
+        opacity: 0.7;
+      }
+
+      @keyframes float-music {
+        0%,
+        100% {
+          transform: translateY(100vh) rotate(0deg);
+          opacity: 0;
+        }
+        10%,
+        90% {
+          opacity: 0.7;
+        }
+        50% {
+          transform: translateY(-20px) rotate(180deg);
+          opacity: 0.4;
+        }
+      }
+
+      /* Audio waveform animation */
+      .waveform {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        z-index: 1;
+        display: flex;
+        align-items: end;
+        justify-content: center;
+        gap: 2px;
+        opacity: 0.1;
+      }
+
+      .wave-bar {
+        width: 3px;
+        background: linear-gradient(to top, #9333ea, #3b82f6);
+        border-radius: 2px;
+        animation: wave 1.5s ease-in-out infinite;
+      }
+
+      @keyframes wave {
+        0%,
+        100% {
+          height: 5px;
+        }
+        50% {
+          height: 30px;
+        }
+      }
+
+      .container {
+        position: relative;
+        z-index: 2;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        max-width: 1400px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(20px);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 50px rgba(147, 51, 234, 0.1);
+      }
+
+      .header {
+        background: linear-gradient(
+          135deg,
+          rgba(147, 51, 234, 0.9) 0%,
+          rgba(59, 130, 246, 0.8) 50%,
+          rgba(16, 185, 129, 0.7) 100%
+        );
+        padding: 25px 30px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+        animation: shimmer 4s infinite;
+      }
+
+      .header::after {
+        content: "♪ ♫ ♪ ♫ ♪";
+        position: absolute;
+        top: 10px;
+        right: 30px;
+        font-size: 12px;
+        opacity: 0.3;
+        animation: music-float 3s ease-in-out infinite;
+      }
+
+      @keyframes shimmer {
+        0% {
+          left: -100%;
+        }
+        100% {
+          left: 100%;
+        }
+      }
+
+      @keyframes music-float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        z-index: 1;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .ai-avatar {
+        width: 55px;
+        height: 55px;
+        background: linear-gradient(45deg, #9333ea, #3b82f6, #10b981);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        animation: pulse-music 2s infinite alternate;
+        box-shadow: 0 0 20px rgba(147, 51, 234, 0.5),
+          0 0 40px rgba(59, 130, 246, 0.3), 0 0 60px rgba(16, 185, 129, 0.2);
+        position: relative;
+      }
+
+      .ai-avatar::before {
+        content: "";
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        border: 2px solid rgba(147, 51, 234, 0.3);
+        border-radius: 50%;
+        animation: rotate 3s linear infinite;
+      }
+
+      @keyframes pulse-music {
+        0% {
+          box-shadow: 0 0 20px rgba(147, 51, 234, 0.5),
+            0 0 40px rgba(59, 130, 246, 0.3);
+        }
+        100% {
+          box-shadow: 0 0 30px rgba(147, 51, 234, 0.8),
+            0 0 60px rgba(59, 130, 246, 0.5), 0 0 80px rgba(16, 185, 129, 0.3);
+        }
+      }
+
+      @keyframes rotate {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .header-text h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        background: linear-gradient(45deg, #ffffff, #e0e7ff, #ddd6fe);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        position: relative;
+      }
+
+      .header-text h1::after {
+        content: "🎵";
+        position: absolute;
+        right: -30px;
+        top: 0;
+        animation: bounce 2s infinite;
+      }
+
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .header-text p {
+        font-size: 1rem;
+        opacity: 0.9;
+        color: #e0e7ff;
+        font-style: italic;
+      }
+
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px 18px;
+        border-radius: 25px;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ef4444;
+        animation: pulse-dot 2s infinite;
+        position: relative;
+      }
+
+      .status-dot.connected {
+        background: #10b981;
+      }
+
+      .status-dot.connected::after {
+        content: "♪";
+        position: absolute;
+        top: -20px;
+        left: -2px;
+        font-size: 10px;
+        color: #10b981;
+        animation: music-note 1.5s infinite;
+      }
+
+      @keyframes pulse-dot {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.7;
+          transform: scale(1.2);
+        }
+      }
+
+      @keyframes music-note {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translateY(0);
+        }
+        50% {
+          opacity: 1;
+          transform: translateY(-5px);
+        }
+      }
+
+      .main-content {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      .sidebar {
+        width: 380px;
+        background: rgba(255, 255, 255, 0.03);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 25px;
+        overflow-y: auto;
+        backdrop-filter: blur(15px);
+        position: relative;
+      }
+
+      .sidebar::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(147,51,234,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(59,130,246,0.1)"/><circle cx="60" cy="80" r="1" fill="rgba(16,185,129,0.1)"/></svg>');
+        opacity: 0.3;
+        pointer-events: none;
+      }
+
+      .sidebar h3 {
+        color: #e0e7ff;
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+      }
+
+      .quick-actions {
+        margin-bottom: 30px;
+      }
+
+      .sample-questions {
+        list-style: none;
+      }
+
+      .sample-questions li {
+        margin-bottom: 12px;
+      }
+
+      .sample-question {
+        display: block;
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        text-decoration: none;
+        color: #d1d5db;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        text-align: left;
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sample-question::before {
+        content: "🎼";
+        position: absolute;
+        left: -30px;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: all 0.3s ease;
+        opacity: 0;
+      }
+
+      .sample-question:hover {
+        background: rgba(147, 51, 234, 0.15);
+        border-color: rgba(147, 51, 234, 0.4);
+        transform: translateX(8px);
+        color: #ffffff;
+        box-shadow: 0 5px 20px rgba(147, 51, 234, 0.2);
+      }
+
+      .sample-question:hover::before {
+        left: 10px;
+        opacity: 1;
+      }
+
+      .tables-section {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .tables-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, #9333ea, #3b82f6, #10b981);
+      }
+
+      .tables-section h4 {
+        color: #e0e7ff;
+        margin-bottom: 18px;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .table-tag {
+        display: inline-block;
+        background: linear-gradient(
+          45deg,
+          rgba(147, 51, 234, 0.2),
+          rgba(59, 130, 246, 0.2)
+        );
+        color: #c4b5fd;
+        padding: 8px 14px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin: 4px;
+        font-weight: 500;
+        border: 1px solid rgba(196, 181, 253, 0.3);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .table-tag:hover {
+        background: linear-gradient(
+          45deg,
+          rgba(147, 51, 234, 0.4),
+          rgba(59, 130, 246, 0.4)
+        );
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(147, 51, 234, 0.3);
+      }
+
+      .database-info {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 10px;
+        border-left: 3px solid #10b981;
+        font-size: 0.85rem;
+        color: #6ee7b7;
+      }
+
+      .chat-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: rgba(255, 255, 255, 0.01);
+        position: relative;
+      }
+
+      .messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 30px;
+        scroll-behavior: smooth;
+        position: relative;
+      }
+
+      .message {
+        margin-bottom: 25px;
+        animation: slideIn 0.5s ease-out;
+        opacity: 0;
+        transform: translateY(20px);
+        animation-fill-mode: forwards;
+      }
+
+      @keyframes slideIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .message.user {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .message.assistant {
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .message-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(45deg, #9333ea, #3b82f6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+        box-shadow: 0 5px 15px rgba(147, 51, 234, 0.4);
+        animation: avatar-pulse 2s infinite;
+      }
+
+      @keyframes avatar-pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      .message-content {
+        max-width: 75%;
+        padding: 18px 24px;
+        border-radius: 25px;
+        position: relative;
+        backdrop-filter: blur(15px);
+        word-wrap: break-word;
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+
+      .message.user .message-content {
+        background: linear-gradient(135deg, #9333ea, #7c3aed, #3b82f6);
+        color: white;
+        border-bottom-right-radius: 8px;
+        box-shadow: 0 10px 30px rgba(147, 51, 234, 0.3);
+        position: relative;
+      }
+
+      .message.user .message-content::before {
+        content: "♪";
+        position: absolute;
+        top: -10px;
+        right: 10px;
+        font-size: 12px;
+        opacity: 0.7;
+        animation: music-float 2s infinite;
+      }
+
+      .message.assistant .message-content {
+        background: rgba(255, 255, 255, 0.08);
+        color: #f3f4f6;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-bottom-left-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+
+      .typing-indicator.show {
+        display: flex;
+      }
+
+      .typing-dots {
+        display: flex;
+        gap: 6px;
+        padding: 18px 24px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 25px;
+        border-bottom-left-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .typing-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #9333ea;
+        animation: typing 1.4s infinite ease-in-out;
+      }
+
+      .typing-dot:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .typing-dot:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      @keyframes typing {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+        40% {
+          transform: scale(1.2);
+          opacity: 1;
+        }
+      }
+
+      .input-area {
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.04);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(25px);
+        position: relative;
+      }
+
+      .input-area::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          #9333ea,
+          #3b82f6,
+          #10b981,
+          transparent
+        );
+        animation: flow 3s ease-in-out infinite;
+      }
+
+      @keyframes flow {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.8;
+        }
+      }
+
+      .input-container {
+        position: relative;
+        display: flex;
+        align-items: end;
+        gap: 15px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .input-wrapper {
+        flex: 1;
+        position: relative;
+      }
+
+      #questionInput {
+        width: 100%;
+        padding: 18px 60px 18px 24px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 30px;
+        color: #ffffff;
+        font-size: 1rem;
+        resize: none;
+        outline: none;
+        transition: all 0.3s ease;
+        font-family: inherit;
+        backdrop-filter: blur(15px);
+        min-height: 60px;
+        max-height: 140px;
+      }
+
+      #questionInput::placeholder {
+        color: #a1a1aa;
+        font-style: italic;
+      }
+
+      #questionInput:focus {
+        border-color: rgba(147, 51, 234, 0.6);
+        box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.1),
+          0 0 20px rgba(147, 51, 234, 0.2);
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .send-button {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        background: linear-gradient(45deg, #9333ea, #7c3aed);
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        box-shadow: 0 5px 20px rgba(147, 51, 234, 0.4);
+      }
+
+      .send-button:hover:not(:disabled) {
+        transform: translateY(-3px) scale(1.1);
+        box-shadow: 0 10px 30px rgba(147, 51, 234, 0.6);
+        background: linear-gradient(45deg, #7c3aed, #6366f1);
+      }
+
+      .send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        color: #9ca3af;
+        padding: 40px;
+        position: relative;
+      }
+
+      .empty-state-icon {
+        font-size: 5rem;
+        margin-bottom: 25px;
+        opacity: 0.6;
+        animation: float 4s ease-in-out infinite;
+        background: linear-gradient(45deg, #9333ea, #3b82f6, #10b981);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .empty-state h3 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+        color: #e5e7eb;
+        background: linear-gradient(45deg, #ffffff, #e0e7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .empty-state p {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        max-width: 500px;
+        line-height: 1.6;
+      }
+
+      .error-message {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #fca5a5;
+        backdrop-filter: blur(15px);
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 5px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(45deg, #9333ea, #3b82f6);
+        border-radius: 5px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(45deg, #7c3aed, #2563eb);
+      }
+
+      /* Mobile responsiveness */
+      @media (max-width: 768px) {
+        .main-content {
+          flex-direction: column;
+        }
+
+        .sidebar {
+          width: 100%;
+          max-height: 250px;
+          border-right: none;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-content {
+          flex-direction: column;
+          gap: 15px;
+          align-items: flex-start;
+        }
+
+        .message-content {
+          max-width: 90%;
+        }
+
+        .container {
+          border-left: none;
+          border-right: none;
+        }
+
+        .header-text h1 {
+          font-size: 1.6rem;
+        }
+
+        .header-text h1::after {
+          right: -25px;
+        }
+      }
+
+      /* Loading animation for send button */
+      .send-button.loading {
+        animation: spin-music 1s linear infinite;
+      }
+
+      @keyframes spin-music {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Additional music-themed animations */
+      .music-playing {
+        position: relative;
+      }
+
+      .music-playing::after {
+        content: "♪ ♫ ♪";
+        position: absolute;
+        top: -15px;
+        right: -10px;
+        font-size: 10px;
+        color: #10b981;
+        animation: music-notes 2s infinite;
+      }
+
+      @keyframes music-notes {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translateY(0);
+        }
+        50% {
+          opacity: 1;
+          transform: translateY(-8px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Animated musical notes background -->
+    <div class="music-notes" id="musicNotes"></div>
+
+    <!-- Audio waveform background -->
+    <div class="waveform" id="waveform"></div>
+
+    <div class="container">
+      <div class="header">
+        <div class="header-content">
+          <div class="header-left">
+            <div class="ai-avatar">🎵</div>
+            <div class="header-text">
+              <h1>Chinook Music AI</h1>
+              <p>Your personal music database assistant</p>
+            </div>
+          </div>
+          <div class="status-indicator">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Tuning up...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="sidebar">
+          <div class="quick-actions">
+            <h3>🎼 Music Queries</h3>
+            <ul class="sample-questions" id="sampleQuestions">
+              <!-- Sample questions will be loaded here -->
+            </ul>
+          </div>
+
+          <div class="tables-section">
+            <h4>🗄️ Music Tables</h4>
+            <div id="tablesList">
+              <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+            </div>
+            <div class="database-info">
+              <strong>🎯 Chinook Database</strong><br />
+              A complete music store database with artists, albums, tracks,
+              customers, and sales data.
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-container">
+          <div class="messages" id="messages">
+            <div class="empty-state">
+              <div class="empty-state-icon">🎸</div>
+              <h3>Welcome to Chinook Music AI!</h3>
+              <p>
+                I'm your personal music database assistant. Ask me about
+                artists, albums, genres, sales, customers, or any music-related
+                data you're curious about!
+              </p>
+            </div>
+          </div>
+
+          <div class="typing-indicator" id="typingIndicator">
+            <div class="message-avatar">🎵</div>
+            <div class="typing-dots">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+
+          <div class="input-area">
+            <div class="input-container">
+              <div class="input-wrapper">
+                <textarea
+                  id="questionInput"
+                  placeholder="Ask me about your favorite music... 🎤"
+                  rows="1"
+                ></textarea>
+                <button
+                  class="send-button"
+                  id="sendButton"
+                  onclick="sendQuery()"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let isLoading = false;
+
+      // Initialize the app
+      document.addEventListener("DOMContentLoaded", function () {
+        createMusicNotes();
+        createWaveform();
+        checkHealth();
+        loadSampleQuestions();
+        loadTables();
+
+        // Auto-resize textarea
+        const textarea = document.getElementById("questionInput");
+        textarea.addEventListener("input", autoResize);
+
+        // Enter key to send (Shift+Enter for new line)
+        textarea.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendQuery();
+          }
+        });
+      });
+
+      function createMusicNotes() {
+        const musicContainer = document.getElementById("musicNotes");
+        const notes = ["♪", "♫", "♬", "♭", "♯", "𝄞", "𝄢"];
+
+        for (let i = 0; i < 15; i++) {
+          const note = document.createElement("div");
+          note.className = "note";
+          note.textContent = notes[Math.floor(Math.random() * notes.length)];
+
+          // Random position and timing
+          note.style.left = Math.random() * 100 + "%";
+          note.style.animationDelay = Math.random() * 8 + "s";
+          note.style.animationDuration = Math.random() * 4 + 6 + "s";
+          note.style.fontSize = Math.random() * 10 + 15 + "px";
+
+          musicContainer.appendChild(note);
+        }
+      }
+
+      function createWaveform() {
+        const waveform = document.getElementById("waveform");
+
+        for (let i = 0; i < 50; i++) {
+          const bar = document.createElement("div");
+          bar.className = "wave-bar";
+          bar.style.animationDelay = i * 0.1 + "s";
+          bar.style.animationDuration = Math.random() * 1 + 1 + "s";
+          waveform.appendChild(bar);
+        }
+      }
+
+      function autoResize() {
+        const textarea = document.getElementById("questionInput");
+        textarea.style.height = "auto";
+        textarea.style.height = Math.min(textarea.scrollHeight, 140) + "px";
+      }
+
+      async function checkHealth() {
+        try {
+          const response = await fetch("/api/health");
+          const data = await response.json();
+
+          const statusDot = document.getElementById("statusDot");
+          const statusText = document.getElementById("statusText");
+
+          if (data.status === "healthy" && data.agent_ready) {
+            statusDot.classList.add("connected");
+            statusText.textContent = "Ready to rock! 🎸";
+          } else {
+            statusText.textContent = "Tuning up...";
+            setTimeout(checkHealth, 2000);
+          }
+        } catch (error) {
+          document.getElementById("statusText").textContent =
+            "Connection lost 📡";
+          setTimeout(checkHealth, 5000);
+        }
+      }
+
+      async function loadSampleQuestions() {
+        try {
+          const response = await fetch("/api/sample-questions");
+          const data = await response.json();
+
+          // Music-themed sample questions
+          const musicQuestions = [
+            "🎤 Which artist has the most albums in the database?",
+            "🎵 What are the top 5 longest tracks by duration?",
+            "💿 Which genre generates the most revenue?",
+            "🌟 Who are the best-selling artists by track sales?",
+            "🎼 What's the average track length for each genre?",
+            "🛒 Which customers have spent the most on music?",
+            "🎧 How many tracks are in each playlist?",
+            "📊 What are the sales trends by country?",
+          ];
+
+          const container = document.getElementById("sampleQuestions");
+          container.innerHTML = "";
+
+          // Use music-themed questions if available, otherwise fallback to API
+          const questionsToUse =
+            musicQuestions.length > 0 ? musicQuestions : data.questions;
+
+          questionsToUse.slice(0, 6).forEach((question, index) => {
+            const li = document.createElement("li");
+            const button = document.createElement("button");
+            button.className = "sample-question";
+            button.textContent = question;
+            button.onclick = () => {
+              document.getElementById("questionInput").value = question.replace(
+                /^[🎤🎵💿🌟🎼🛒🎧📊]\s/,
+                ""
+              );
+              autoResize();
+              sendQuery();
+            };
+            li.appendChild(button);
+            container.appendChild(li);
+
+            // Stagger animation
+            setTimeout(() => {
+              li.style.animation = "slideIn 0.4s ease-out forwards";
+              li.style.opacity = "0";
+              li.style.transform = "translateX(-20px)";
+            }, index * 150);
+          });
+        } catch (error) {
+          console.error("Error loading sample questions:", error);
+        }
+      }
+
+      async function loadTables() {
+        try {
+          const response = await fetch("/api/tables");
+          const data = await response.json();
+
+          const container = document.getElementById("tablesList");
+
+          if (data.tables) {
+            container.innerHTML = "";
+
+            // Add music-themed icons to table names
+            const tableIcons = {
+              artists: "🎤",
+              albums: "💿",
+              tracks: "🎵",
+              genres: "🎼",
+              customers: "👥",
+              invoices: "🧾",
+              invoice_items: "📋",
+              playlists: "🎧",
+              playlist_track: "📝",
+              employees: "👨‍💼",
+              media_types: "📱",
+            };
+
+            data.tables.forEach((table, index) => {
+              const span = document.createElement("span");
+              span.className = "table-tag";
+              const icon = tableIcons[table.toLowerCase()] || "📊";
+              span.textContent = `${icon} ${table}`;
+              span.style.animationDelay = index * 0.1 + "s";
+              span.style.animation = "slideIn 0.4s ease-out forwards";
+              span.style.opacity = "0";
+              span.title = `Click to explore ${table} table`;
+
+              // Add click functionality to show table info
+              span.onclick = () => {
+                const question = `Tell me about the ${table} table structure and what data it contains`;
+                document.getElementById("questionInput").value = question;
+                autoResize();
+              };
+
+              container.appendChild(span);
+            });
+          } else {
+            container.innerHTML =
+              '<span class="table-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">🚫 Error loading tables</span>';
+          }
+        } catch (error) {
+          console.error("Error loading tables:", error);
+          document.getElementById("tablesList").innerHTML =
+            '<span class="table-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">📡 Connection error</span>';
+        }
+      }
+
+      async function sendQuery() {
+        if (isLoading) return;
+
+        const input = document.getElementById("questionInput");
+        const question = input.value.trim();
+
+        if (!question) return;
+
+        // Clear input and show loading
+        input.value = "";
+        input.style.height = "auto";
+        setLoading(true);
+
+        // Add user message
+        addMessage("user", question);
+
+        // Show typing indicator
+        showTyping(true);
+
+        // Add music playing effect to avatar
+        const avatars = document.querySelectorAll(
+          ".ai-avatar, .message-avatar"
+        );
+        avatars.forEach((avatar) => avatar.classList.add("music-playing"));
+
+        try {
+          const response = await fetch("/api/query", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ question: question }),
+          });
+
+          const data = await response.json();
+
+          // Hide typing indicator
+          showTyping(false);
+
+          if (data.success && data.answer) {
+            addMessage("assistant", data.answer);
+          } else {
+            addMessage(
+              "assistant",
+              `🎵 Oops! I hit a wrong note there. ${
+                data.error || "Unknown error occurred"
+              }. Let's try a different tune! 🎼`,
+              true
+            );
+          }
+        } catch (error) {
+          console.error("Error sending query:", error);
+          showTyping(false);
+          addMessage(
+            "assistant",
+            "🎸 My connection seems to be experiencing some static. Please try again in a moment! 📡",
+            true
+          );
+        }
+
+        // Remove music playing effect
+        setTimeout(() => {
+          avatars.forEach((avatar) => avatar.classList.remove("music-playing"));
+        }, 2000);
+
+        setLoading(false);
+      }
+
+      function addMessage(sender, content, isError = false) {
+        const messagesContainer = document.getElementById("messages");
+
+        // Remove empty state if it exists
+        const emptyState = messagesContainer.querySelector(".empty-state");
+        if (emptyState) {
+          emptyState.remove();
+        }
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${sender}`;
+
+        if (sender === "assistant") {
+          const avatarDiv = document.createElement("div");
+          avatarDiv.className = "message-avatar";
+          avatarDiv.textContent = "🎵";
+          messageDiv.appendChild(avatarDiv);
+        }
+
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "message-content";
+
+        if (isError) {
+          contentDiv.className += " error-message";
+        }
+
+        contentDiv.textContent = content;
+        messageDiv.appendChild(contentDiv);
+
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function showTyping(show) {
+        const typingIndicator = document.getElementById("typingIndicator");
+        if (show) {
+          typingIndicator.classList.add("show");
+        } else {
+          typingIndicator.classList.remove("show");
+        }
+
+        const messagesContainer = document.getElementById("messages");
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function setLoading(loading) {
+        isLoading = loading;
+        const sendButton = document.getElementById("sendButton");
+
+        if (loading) {
+          sendButton.disabled = true;
+          sendButton.classList.add("loading");
+        } else {
+          sendButton.disabled = false;
+          sendButton.classList.remove("loading");
+        }
+      }
+
+      // Add some fun interactions
+      document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("table-tag")) {
+          // Create a small musical note animation on click
+          const note = document.createElement("div");
+          note.textContent = "♪";
+          note.style.position = "fixed";
+          note.style.left = e.clientX + "px";
+          note.style.top = e.clientY + "px";
+          note.style.color = "#9333ea";
+          note.style.fontSize = "20px";
+          note.style.pointerEvents = "none";
+          note.style.zIndex = "9999";
+          note.style.animation = "music-notes 1s ease-out forwards";
+          document.body.appendChild(note);
+
+          setTimeout(() => {
+            document.body.removeChild(note);
+          }, 1000);
+        }
+      });
+
+      // Easter egg: Konami code for special music mode
+      let konamiCode = [];
+      const konamiSequence = [
+        "ArrowUp",
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowLeft",
+        "ArrowRight",
+        "KeyB",
+        "KeyA",
+      ];
+
+      document.addEventListener("keydown", function (e) {
+        konamiCode.push(e.code);
+        if (konamiCode.length > konamiSequence.length) {
+          konamiCode.shift();
+        }
+
+        if (JSON.stringify(konamiCode) === JSON.stringify(konamiSequence)) {
+          // Activate party mode!
+          document.body.style.animation =
+            "party-colors 0.5s infinite alternate";
+          setTimeout(() => {
+            document.body.style.animation = "";
+          }, 3000);
+
+          addMessage(
+            "assistant",
+            "🎉 PARTY MODE ACTIVATED! 🎊 You found the secret music code! Let's make some noise with your data! 🎸🥳",
+            false
+          );
+        }
+      });
+
+      // Add party colors animation
+      const style = document.createElement("style");
+      style.textContent = `
+            @keyframes party-colors {
+                0% { filter: hue-rotate(0deg); }
+                100% { filter: hue-rotate(360deg); }
+            }
+        `;
+      document.head.appendChild(style);
+    </script>
+  </body>
+</html>
